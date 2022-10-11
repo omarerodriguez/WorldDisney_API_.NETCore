@@ -1,9 +1,8 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using MundoDeDisney.Core.DTOs;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MundoDeDisney.Core.Entities;
 using MundoDeDisney.Core.Interfaces;
+using MundoDeDisney.Infraestructure.Data;
 
 namespace MundoDeDisney.Controllers
 {
@@ -11,114 +10,178 @@ namespace MundoDeDisney.Controllers
     [ApiController]
     public class MovieController : ControllerBase
     {
-        private readonly IPeliculaRepositorio peliculaRepositorio;
-        private readonly IMapper mapper;
-        public MovieController(IPeliculaRepositorio peliculaRepositorio, IMapper mapper)
+        private readonly IMovieRepository movieRepository;
+        private readonly DisneyDbContext db;
+
+        public MovieController(IMovieRepository movieRepository, DisneyDbContext db)
         {
-            this.peliculaRepositorio = peliculaRepositorio;
-            this.mapper = mapper;
+            this.movieRepository = movieRepository;
+            this.db = db;
         }
-        [Route("/api/movies")]
+        [Route("movies")]
         [HttpGet]
-        public async Task<ActionResult<IReadOnlyList<PeliculaDto>>> GetAllMovies()
+        public async Task<ActionResult<Movie>> GetAllMovie()
         {
-            var moviesList = await peliculaRepositorio.GetAllMovies();
-            return Ok(mapper.Map<IReadOnlyList<PeliculaDto>>(moviesList));
+            var movie = await movieRepository.GetAllMovies();
+            var list = movie.Select(x=> new {x.Title,x.CreationDate,x.Image}).ToList();
+            return Ok(list);
         }
-        [Route("/ap/movie/id")]
+        [Route("id")]
         [HttpGet]
-        public async Task<ActionResult<Pelicula>> GetMovie(int id)
+        public async Task<ActionResult<Movie>> GetMovie(int id)
         {
             try
             {
-                var getMovie = await peliculaRepositorio.GetMovieById(id);
-                if (getMovie == null)
+                var movieId = await movieRepository.GetMovieById(id);
+                if (movieId == null)
                 {
                     return NotFound();
                 }
-                return getMovie;
+                var movie = await db.Movies.Select(m => new
+                {
+                    MovieId = m.MovieID,
+                    Titulo = m.Title,
+                    Date = m.CreationDate,
+                    Calification = m.Calification,
+                    Picture = m.Image,
+                    Gender = m.Gender.GenderID,
+                    m.Gender.Name,
+                    m.Gender.Image,
+                    CharacterMovie = m.CharactersMovies.Select(cm => new 
+                    { cm.CharacterID, cm.Character.Name,cm.Character.Image,cm.Character.Age,cm.Character.Weight,cm.Character.History })
+
+                }).FirstOrDefaultAsync(g => g.MovieId == id);
+               
+                return Ok(movie);
             }
             catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Error al recuperar datos de la base de datos");
+                    "Error retrieving data from the database");
             }
         }
-        [Route("/api/movie/name")]
-        [HttpGet]
-        public async Task<ActionResult<Pelicula>> GetMovieByMovie(string titulo)
+        [Route("Create")]
+        [HttpPost]
+        public async Task<ActionResult<Movie>> CreateMovie(Movie movie)
         {
             try
             {
-                var getMovie = await peliculaRepositorio.GetMovieByTitulo(titulo);
-                if (getMovie == null)
+                if (movie == null)
                 {
-                    return NotFound();
+                    return BadRequest();
                 }
-                return getMovie;
+                var movieResult = await movieRepository.CreateMovie(movie);
+                return CreatedAtAction(nameof(CreateMovie), new { Id = movieResult.MovieID }, movieResult);
             }
             catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Error al recuperar datos de la base de datos");
+                    "Error creating new movie record");
             }
         }
-        [Route("/api/movie/idGenero")]
-        [HttpGet]
-        public async Task<ActionResult<Pelicula>> GetMovieByidGenero(int idGenero)
+        [Route("Update")]
+        [HttpPut]
+        public async Task<ActionResult<Movie>> UpdateMovie(int id, Movie movie)
         {
             try
             {
-                var getMovie = await peliculaRepositorio.GetMovieByGenero(idGenero);
-                if (getMovie == null)
+                if (id != movie.MovieID)
                 {
-                    return NotFound();
+                    return BadRequest("movie Id mismatch");
                 }
-                return getMovie;
+                var movieResult = await movieRepository.UpdateMovie(movie);
+                if (movieResult == null)
+                {
+                    return NotFound($"Movie with Id = {id} not found");
+                }
+                return await movieRepository.UpdateMovie(movie);
             }
             catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Error al recuperar datos de la base de datos");
+                    "Error Update movie record");
             }
         }
-        [Route("/api/movie/orderA")]
-        [HttpGet]
-        public async Task<ActionResult<Pelicula>> GetMovieByOrderASC(string ASC)
+        [Route("Delete")]
+        [HttpDelete]
+        public async Task<ActionResult<Movie>> DeleteMovie(int id)
         {
             try
             {
-                var getMovie = await peliculaRepositorio.GetMovieByDateOrderASC(ASC);
-                if (getMovie == null)
+                var movieDelete = await movieRepository.GetMovieById(id);
+                if (movieDelete == null)
                 {
-                    return NotFound();
+                    return NotFound($"Movie with Id = {id} not found");
                 }
-                return Ok(getMovie);
+                await movieRepository.DeleteMovie(id);
+                return Ok($"Movie with Id = {id} deleted");
             }
             catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Error al recuperar datos de la base de datos");
+                    "Error delete movie record");
             }
         }
-        [Route("/api/movie/orderD")]
+        [Route("OrderA")]
         [HttpGet]
-        public async Task<ActionResult<Pelicula>> GetMovieByOrderDESC(string DESC)
+        public async Task<ActionResult<Movie>> OrderAsc(string ASC)
         {
-            try
+
+            var date = await movieRepository.GetMovieByDateOrderASC(ASC);
+            var list = date.Select(x => new { x.MovieID, x.Title, x.CreationDate, x.Calification, x.Image, x.GenderID });
+            return Ok(list);
+        }
+        [Route("OrderD")]
+        [HttpGet]
+        public async Task<ActionResult<Movie>> OrderDesc(string DESC)
+        {
+            var date = await movieRepository.GetMovieByDateOrderDESC(DESC);
+            var list = date.Select(x => new { x.MovieID, x.Title, x.CreationDate, x.Calification, x.Image, x.GenderID });
+            return Ok(list);
+        }
+        [Route("idGender")]
+        [HttpGet]
+        public async Task<ActionResult<Movie>> GetMovieIdGender(int idGender)
+        {
+            var character = await movieRepository.GetMovieByGender(idGender);
+            if (character == null)
             {
-                var getMovie = await peliculaRepositorio.GetMovieByDateOrderDESC(DESC);
-                if (getMovie == null)
-                {
-                    return NotFound();
-                }
-                return Ok(getMovie);
+                return NotFound();
             }
-            catch (Exception)
+            var movie = await db.Movies.Select(m => new
             {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Error al recuperar datos de la base de datos");
-            }
+                Gender = m.Gender.GenderID,m.Gender.Name,
+                m.Gender.Image,
+                MovieId = m.MovieID,
+                Titulo = m.Title,
+                Date = m.CreationDate,
+                Calification = m.Calification,
+                Picture = m.Image,
+                CharacterMovie = m.CharactersMovies.Select(cm => new
+                { cm.CharacterID, cm.Character.Name, cm.Character.Image, cm.Character.Age, cm.Character.Weight, cm.Character.History })
+
+            }).FirstOrDefaultAsync(g => g.MovieId == idGender);
+            return Ok(movie);
+        }
+        [Route("Tittle")]
+        [HttpGet]
+        public async Task<ActionResult<Movie>> GetMovieTitle(string title)
+        {
+            
+            var movie = await db.Movies.Select(m => new
+            {
+                Tittle = m.Title,
+                Picture = m.Image,
+                MovieId = m.MovieID,
+                CreationDate = m.CreationDate,
+                Calification = m.Calification,
+                Gender = m.Gender.GenderID,m.Gender.Name, m.Gender.Image,
+                CharacterMovie = m.CharactersMovies.Select(cm => new
+                { cm.CharacterID, cm.Character.Name, cm.Character.Image, cm.Character.Age, cm.Character.Weight, cm.Character.History })
+                
+            }).FirstOrDefaultAsync(t=>t.Tittle==title);
+           
+            return Ok(movie);
         }
     }
 }

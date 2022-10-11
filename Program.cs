@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MundoDeDisney.Core.Interfaces;
 using MundoDeDisney.Infraestructure.Data;
-using MundoDeDisney.Infraestructure.Mapping;
 using MundoDeDisney.Infraestructure.Repositories;
 using System.Text.Json.Serialization;
 
@@ -14,11 +13,11 @@ builder.Services.AddControllers().AddJsonOptions(x =>
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 builder.Services.AddDbContext<DisneyDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionDefault")));
-builder.Services.AddScoped<IPersonajesRepositorio, PesonajeRepositorio>();
-builder.Services.AddScoped<IPeliculaRepositorio, PeliculaRepositorio>();
-builder.Services.AddAutoMapper(typeof(MapperProfile));
+builder.Services.AddScoped<IMovieRepository, MovieRepository>();
+builder.Services.AddScoped<ICharacterRepository, CharacterRepository>();
 var app = builder.Build();
 
 

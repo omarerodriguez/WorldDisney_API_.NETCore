@@ -1,9 +1,8 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using MundoDeDisney.Core.DTOs;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MundoDeDisney.Core.Entities;
 using MundoDeDisney.Core.Interfaces;
+using MundoDeDisney.Infraestructure.Data;
 
 namespace MundoDeDisney.Controllers
 {
@@ -11,150 +10,205 @@ namespace MundoDeDisney.Controllers
     [ApiController]
     public class CharacterController : ControllerBase
     {
-        private readonly IPersonajesRepositorio personajesRepositorio;
-        private readonly IMapper mapper;
-        public CharacterController(IPersonajesRepositorio personajesRepositorio, IMapper mapper)
+        private readonly ICharacterRepository characterRepository;
+        private readonly DisneyDbContext db;
+        public CharacterController(ICharacterRepository characterRepository, DisneyDbContext db)
         {
-            this.personajesRepositorio = personajesRepositorio;
-            this.mapper = mapper;
+            this.characterRepository = characterRepository;
+            this.db = db;
         }
-        [Route("/api/Characters")]
+
+        // [Route]
         [HttpGet]
-        public async Task<ActionResult<IReadOnlyList<ListadoPjDto>>> GetAllCharacters()
+        public async Task<ActionResult<Character>> GetAllMovie()
         {
-            var personajeList = await personajesRepositorio.GetAllCharacters();
-            return Ok(mapper.Map<IReadOnlyList<ListadoPjDto>>(personajeList));
+            var character = await characterRepository.GetAllCharacters();
+            var list = character.Select(x => new { x.Name, x.Image }).ToList();
+            return Ok(list);
         }
-        [HttpGet("{id}")]
-        public async Task<ActionResult<PersonajesDto>> GetCharacter(int id)
+        [Route("id")]
+        [HttpGet]
+        public async Task<ActionResult<Character>> GetCharacter(int id)
         {
             try
             {
-                var getCharacter = await personajesRepositorio.GetCharacterById(id);
-                if (getCharacter == null)
+                var characterId = await db.Characters.Select(p => new
                 {
-                    return NotFound();
-                }
-                return mapper.Map<Personaje,PersonajesDto>(getCharacter);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex);//StatusCode(StatusCodes.Status500InternalServerError,
-                    //"Error al recuperar datos de la base de datos");
-            }
-        }
-        [Route("/api/Personaje/age")]
-        [HttpGet]
-        public async Task<ActionResult<PersonajesDto>> GetCharacterByAge(int age)
-        {
-            try
-            {
-                var getCharacter = await personajesRepositorio.GetCharacterByAge(age);
-                if (getCharacter == null)
-                {
-                    return NotFound();
-                }
-                return mapper.Map<Personaje, PersonajesDto>(getCharacter);
+                    Id = p.CharacterID,
+                    Name = p.Name,
+                    Image = p.Image,
+                    Age = p.Age,
+                    Weight = p.Weight,
+                    History = p.History,
+                    CharacterMovie = p.CharactersMovies.Select(cm => 
+                    new
+                    { cm.MovieID,cm.Movie.Title})
+
+                }).FirstOrDefaultAsync(c=>c.Id==id);
+
+                return Ok(characterId);
             }
             catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Error al recuperar datos de la base de datos");
+                    "Error retrieving data from the database");
             }
         }
-        [Route("/api/Personaje/name")]
-        [HttpGet]
-        public async Task<ActionResult<PersonajesDto>> GetCharacterByName(string name)
+
+        [HttpPost("Create")]
+        public async Task<ActionResult> CreateCharacter([FromBody] Character character)
         {
             try
             {
-                var getCharacter = await personajesRepositorio.GetCharacterByName(name);
-                if (getCharacter == null)
-                {
-                    return NotFound();
-                }
-                return mapper.Map<Personaje, PersonajesDto>(getCharacter);
-            }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Error al recuperar datos de la base de datos");
-            }
-        }
-        [Route("/api/Personaje/weight")]
-        [HttpGet]
-        public async Task<ActionResult<PersonajesDto>> GetCharacterByWeight(int weight)
-        {
-            var getCharacter = await personajesRepositorio.GetCharacterByWeight(weight);
-            return mapper.Map<Personaje, PersonajesDto>(getCharacter);
-        }
-        [Route("/api/Personaje/movies")]
-        [HttpGet]
-        public async Task<ActionResult<PersonajesDto>> GetCharacterByMovie(int IdMovie)
-        {
-            var getCharacter = await personajesRepositorio.GetCharacterByMovie(IdMovie);
-            return mapper.Map<Personaje, PersonajesDto>(getCharacter);
-        }
-        [HttpPost("Crear")]
-        public async Task<ActionResult<Personaje>> CreateCharacter(Personaje personaje)
-        {
-            try
-            {
-                if(personaje == null)
+                if (character == null)
                 {
                     return BadRequest();
                 }
-                var result = await personajesRepositorio.CreateCharacter(personaje);
-                return CreatedAtAction(nameof(CreateCharacter), new { Id = result.PersonajeID }, result);
+                var characterResult = await characterRepository.CreateCharacter(character);
+                return CreatedAtAction(nameof(CreateCharacter), new { Id = characterResult.CharacterID }, characterResult);
             }
             catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Error al intentar crear un nuevo personaje");
+                    "Error creating new character record");
             }
-            
         }
-        [HttpPut("{id}")]
-        public async Task<ActionResult<Personaje>> UpdateCharacter(int Id, Personaje personaje)
+        [HttpPut("Update")]
+        public async Task<ActionResult<Character>> UpdateCharacter(int id, [FromBody] Character character)
         {
             try
             {
-                if (Id != personaje.PersonajeID)
+                if (id != character.CharacterID)
                 {
-                    return BadRequest("Id del Personaje no coincide");
+                    return BadRequest("character Id mismatch");
                 }
-                var Result = await personajesRepositorio.UpdateCharacter(personaje);
-                if (Result == null)
+                var characterResult = await characterRepository.UpdateCharacter(character);
+                if (characterResult == null)
                 {
-                    return NotFound($"Personaje con Id = {Id} no encontrado");
+                    return NotFound($"Character with Id = {id} not found");
                 }
-                 await personajesRepositorio.UpdateCharacter(personaje);
-                return Ok(StatusCode(StatusCodes.Status200OK));
+                return await characterRepository.UpdateCharacter(character);
             }
             catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Error al actualizar el personaje guardado");
+                    "Error Update character record");
             }
         }
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<Personaje>> DeleteCharacter(int Id)
+        [HttpDelete("Delete")]
+        public async Task<ActionResult<Character>> Delete(int id)
         {
             try
             {
-                var delete = await personajesRepositorio.GetCharacterById(Id);
-                if (delete == null)
+                var characterDelete = await characterRepository.GetCharacterById(id);
+                if (characterDelete == null)
                 {
-                    return NotFound($"Personaje con Id = {Id} no encontrado");
+                    return NotFound($"Character with Id = {id} not found");
                 }
-                await personajesRepositorio.DeleteCharacter(Id);
-                return Ok($"Personaje con Id = {Id} ha sido borrado");
+                await characterRepository.DeleteCharacter(id);
+                return Ok($"Character with Id = {id} deleted");
             }
             catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Error al intentar borrar un personaje guardado");
+                    "Error delete character record");
             }
         }
-    }           
+        [Route("name")]
+        [HttpGet]
+        public async Task<ActionResult<Character>> GetCharacterName(string name)
+        {
+            try
+            {
+                var characterName = await characterRepository.GetCharacterByName(name);
+
+                if (characterName == null)
+                {
+                    return NotFound();
+                }
+                var character = await db.Characters.Select(p => new
+                {
+                    Name = p.Name,
+                    Id = p.CharacterID,
+                    Image = p.Image,
+                    Age = p.Age,
+                    Weight = p.Weight,
+                    History = p.History,
+                    CharacterMovie = p.CharactersMovies.Select(cm => new
+                    { cm.MovieID, cm.Movie.Title })
+
+                }).FirstOrDefaultAsync(c => c.Name == name);
+                return Ok(character);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Error retrieving data from the database");
+            }
+        }
+        [Route("age")]
+        [HttpGet]
+        public async Task<ActionResult<Character>> GetCharacterAge(int age)
+        {
+            try
+            {
+                var characterAge = await characterRepository.GetCharacterByAge(age);
+                if (characterAge == null)
+                {
+                    return NotFound();
+                }
+                var character = await db.Characters.Select(p => new
+                {
+                    Age = p.Age,
+                    Id = p.CharacterID,
+                    Name = p.Name,
+                    Image = p.Image,
+                    Weight = p.Weight,
+                    History = p.History,
+                    CharacterMovie = p.CharactersMovies.Select(cm =>
+                    new
+                    { cm.MovieID, cm.Movie.Title })
+
+                }).FirstOrDefaultAsync(c => c.Age == age);
+                return Ok(character);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Error retrieving data from the database");
+            }
+        }
+        [Route("weight")]
+        [HttpGet]
+        public async Task<ActionResult<Character>> GetCharacterWeight(int weight)
+        {
+            try
+            {
+                var characterWeight = await characterRepository.GetCharacterByWeight(weight);
+                if (characterWeight == null)
+                {
+                    return NotFound();
+                }
+                var character = await db.Characters.Select(p => new
+                {
+                    Weight = p.Weight,
+                    Name = p.Name,
+                    Age = p.Age,
+                    Id = p.CharacterID,
+                    Image = p.Image,
+                    History = p.History,
+                    CharacterMovie = p.CharactersMovies.Select(cm =>
+                    new
+                    { cm.MovieID, cm.Movie.Title })
+
+                }).FirstOrDefaultAsync(c => c.Weight == weight);
+                return Ok(character);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Error retrieving data from the database");
+            }
+        }
+    }
 }
