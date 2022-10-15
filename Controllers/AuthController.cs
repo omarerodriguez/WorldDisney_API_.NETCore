@@ -1,9 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using MundoDeDisney.Core.Dto;
 using MundoDeDisney.Core.Entities;
-using MundoDeDisney.Core.Interfaces;
 using MundoDeDisney.Service.EmailService;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -75,7 +73,6 @@ namespace MundoDeDisney.Controllers
 
             var token = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.Now.AddDays(1),
                 signingCredentials: cred);
 
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
