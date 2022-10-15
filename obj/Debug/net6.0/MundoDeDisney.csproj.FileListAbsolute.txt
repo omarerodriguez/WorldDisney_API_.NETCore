@@ -76,3 +76,4 @@ C:\Users\User\Proyectos csharp\MundoDeDisney\bin\Debug\net6.0\StarkbankEcdsa.dll
 C:\Users\User\Proyectos csharp\MundoDeDisney\bin\Debug\net6.0\MailKit.dll
 C:\Users\User\Proyectos csharp\MundoDeDisney\bin\Debug\net6.0\MimeKit.dll
 C:\Users\User\Proyectos csharp\MundoDeDisney\bin\Debug\net6.0\BouncyCastle.Crypto.dll
+C:\Users\User\Proyectos csharp\MundoDeDisney\bin\Debug\net6.0\DISNEY.postman_collection.json

@@ -72,6 +72,7 @@ namespace MundoDeDisney.Controllers
             var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
             var token = new JwtSecurityToken(
+                expires: DateTime.Now.AddDays(1),
                 claims: claims,
                 signingCredentials: cred);
 

@@ -58,7 +58,7 @@ namespace MundoDeDisney.Controllers
         }
         [Authorize(Roles = "admin")]
         [HttpPost("Create")]
-        public async Task<ActionResult> CreateCharacter([FromBody] Character character)
+        public async Task<ActionResult> CreateCharacter(Character character)
         {
             try
             {
@@ -67,17 +67,17 @@ namespace MundoDeDisney.Controllers
                     return BadRequest();
                 }
                 var characterResult = await characterRepository.CreateCharacter(character);
-                return CreatedAtAction(nameof(CreateCharacter), new { Id = characterResult.CharacterID }, characterResult);
+                return Ok(character); //CreatedAtAction(nameof(CreateCharacter), new { Id = characterResult.CharacterID }, characterResult);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Error creating new character record");
+                return BadRequest(ex);//StatusCode(StatusCodes.Status500InternalServerError,
+                   // "Error creating new character record");
             }
         }
         [Authorize(Roles = "admin")]
         [HttpPut("Update")]
-        public async Task<ActionResult<Character>> UpdateCharacter(int id, [FromBody] Character character)
+        public async Task<ActionResult<Character>> UpdateCharacter(int id,Character character)
         {
             try
             {

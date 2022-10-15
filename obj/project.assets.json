@@ -920,8 +920,10 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v6.0",
         "dependencies": {
+          "MailKit": "3.4.1",
           "Microsoft.EntityFrameworkCore": "6.0.9",
           "Microsoft.EntityFrameworkCore.SqlServer": "6.0.9",
+          "MimeKit": "3.4.1",
           "MundoDeDisney.Core": "1.0.0",
           "SendGrid": "9.28.1"
         },
