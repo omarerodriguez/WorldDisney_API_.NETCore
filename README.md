@@ -42,5 +42,43 @@ Aqui puedes conocer el mundo de disney, realizar crud en sus personajes, series 
  los usuarios creados se guardaran en memoria, por tal motivo si cierra el proyecto tendria que crear otro usuario, pero si no lo requiere puede usar el token ya generado para volverse autorizar sin problemas (el token tiene vigencia de 1 dia).
  
  **Query & Endpoints**
+ -Characters:
+ 
+ **LISTAR TODOS**:
+ https://localhost:7014/api/Character
+ 
+ **LISTAR POR ID**:
+ https://localhost:7014/api/Character/id?id=1
+ 
+ **LISTAR POR EDAD**:
+ https://localhost:7014/api/Character/age?age=16
+ 
+ **LISTAR POR NOMBRE**:
+ https://localhost:7014/api/Character/name?name=goofy
+ 
+ **LISTAR POR PESO**:
+ https://localhost:7014/api/Character/weight?weight=45
+ 
+ 
+ -Movie:
+ 
+ **LISTAR TODAS**:
+ https://localhost:7014/api/Movie/movies
+ 
+ **LISTAR POR ID**:
+ https://localhost:7014/api/Movie/id?id=1
+ 
+ **LISTAR POR NOMBRE**:
+ https://localhost:7014/api/Movie/Tittle?title=mulan
+ 
+ **LISTAR POR ID GENERO**:
+ https://localhost:7014/api/Movie/idGender?idGender=1
+ 
+ **LISTAR ORDEN ASC**:
+ https://localhost:7014/api/Movie/OrderA?ASC=asc
+ 
+ **LISTAR ORDEN DESC**:
+ https://localhost:7014/api/Movie/OrderD?DESC=desc
+ 
  
  
