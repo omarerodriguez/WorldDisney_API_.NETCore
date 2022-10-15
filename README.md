@@ -21,7 +21,27 @@ Aqui puedes conocer el mundo de disney, realizar crud en sus personajes, series 
  Se uso SqlServer para guardar y/o almacenar los datos de esta Web Api.
  
  
+ # Enviromment stepup
+ 1). instalar Visual studio community
+ 
+ 2). instalar los siguientes paquetes:
+- Desarrollo de ASP.NET y web
+- .NetCore 6
+ 
+ 3). Configura el archivo => DISNEY.postman_collection.json en Postman
+ 
+ 4). para la conexion a la base de datos de forma local, debes ir al archivo appsettings.json que se encuentra dentro del proyecto, luego en ConnectionDefault cambiar el nombre del server por el que tiene su maquina, en mi caso era : {DESKTOP-A3CT7MU\\GESTIONPROGRAM} usando Sql server management studio 18, en sus propiedades obtendran el nombre del server.
+ 
+ 5). luego de actualizar el nombre del server, se dirigen a la barra de menu => Herramientas =>Administrador de paquetes Nuget => Consola del administrador de paquetes.
+ 
+ Aqui utilizaran los siguientes comandos: add-migration DbDisney
+ 
+ esperan que termine, luego: update-database
+ 
+ 6). Ya configurada la API y la migracion de  datos listas entonces puedes inicializar el proyecto oprimiendo F5
+ 
   # Para realizar el test
+  
  - las siguientes rutas solo son para usuarios con role administrador (admin)
  
  admin=
