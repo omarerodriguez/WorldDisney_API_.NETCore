@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MundoDeDisney.Core.Entities;
 using MundoDeDisney.Core.Interfaces;
@@ -8,6 +9,7 @@ namespace MundoDeDisney.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class CharacterController : ControllerBase
     {
         private readonly ICharacterRepository characterRepository;
@@ -54,7 +56,7 @@ namespace MundoDeDisney.Controllers
                     "Error retrieving data from the database");
             }
         }
-
+        [Authorize(Roles = "admin")]
         [HttpPost("Create")]
         public async Task<ActionResult> CreateCharacter([FromBody] Character character)
         {
@@ -73,6 +75,7 @@ namespace MundoDeDisney.Controllers
                     "Error creating new character record");
             }
         }
+        [Authorize(Roles = "admin")]
         [HttpPut("Update")]
         public async Task<ActionResult<Character>> UpdateCharacter(int id, [FromBody] Character character)
         {
@@ -95,6 +98,7 @@ namespace MundoDeDisney.Controllers
                     "Error Update character record");
             }
         }
+        [Authorize(Roles = "admin")]
         [HttpDelete("Delete")]
         public async Task<ActionResult<Character>> Delete(int id)
         {

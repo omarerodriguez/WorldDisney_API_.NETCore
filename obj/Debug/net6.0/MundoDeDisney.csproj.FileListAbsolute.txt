@@ -65,3 +65,14 @@ C:\Users\User\Proyectos csharp\MundoDeDisney\obj\Debug\net6.0\MundoDeDisney.genr
 C:\Users\User\Proyectos csharp\MundoDeDisney\obj\Debug\net6.0\ref\MundoDeDisney.dll
 C:\Users\User\Proyectos csharp\MundoDeDisney\bin\Debug\net6.0\AutoMapper.dll
 C:\Users\User\Proyectos csharp\MundoDeDisney\bin\Debug\net6.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
+C:\Users\User\Proyectos csharp\MundoDeDisney\bin\Debug\net6.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\User\Proyectos csharp\MundoDeDisney\bin\Debug\net6.0\Microsoft.Extensions.DependencyModel.dll
+C:\Users\User\Proyectos csharp\MundoDeDisney\bin\Debug\net6.0\Scrutor.dll
+C:\Users\User\Proyectos csharp\MundoDeDisney\bin\Debug\net6.0\Swashbuckle.AspNetCore.Filters.dll
+C:\Users\User\Proyectos csharp\MundoDeDisney\bin\Debug\net6.0\Swashbuckle.AspNetCore.Filters.Abstractions.dll
+C:\Users\User\Proyectos csharp\MundoDeDisney\bin\Debug\net6.0\Newtonsoft.Json.dll
+C:\Users\User\Proyectos csharp\MundoDeDisney\bin\Debug\net6.0\SendGrid.dll
+C:\Users\User\Proyectos csharp\MundoDeDisney\bin\Debug\net6.0\StarkbankEcdsa.dll
+C:\Users\User\Proyectos csharp\MundoDeDisney\bin\Debug\net6.0\MailKit.dll
+C:\Users\User\Proyectos csharp\MundoDeDisney\bin\Debug\net6.0\MimeKit.dll
+C:\Users\User\Proyectos csharp\MundoDeDisney\bin\Debug\net6.0\BouncyCastle.Crypto.dll

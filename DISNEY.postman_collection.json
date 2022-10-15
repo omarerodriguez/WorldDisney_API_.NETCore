@@ -1,0 +1,624 @@
+{
+	"info": {
+		"_postman_id": "89fd4ec2-9ef1-4869-9e28-e879be04fa59",
+		"name": "DISNEY",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22288744"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"userName\": \"omar\",\r\n  \"email\": \"omarmr7214@gmail.com\",\r\n   \"role\": \"admin\",\r\n  \"password\": \"1234\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:7014/api/Auth/Register",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7014",
+							"path": [
+								"api",
+								"Auth",
+								"Register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "bearer eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJhZG1pbiIsImV4cCI6MTY2NTg3NTM1MH0.deyIPRHDYtV4sLHf4h3EyO62yw2_mVLZP-qzknNr193U-Fmh0XcZGH4hldpk32OBQyEjAaJ_4da6CblkHnfX2g",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "token",
+								"value": "bearer ",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"userName\": \"omar\",\r\n  \"password\": \"1234\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:7014/api/Auth/Login",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7014",
+							"path": [
+								"api",
+								"Auth",
+								"Login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Character",
+			"item": [
+				{
+					"name": "Get All Characters",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "name",
+								"value": "mulan",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "https://localhost:7014/api/Character",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7014",
+							"path": [
+								"api",
+								"Character"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get By Id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "name",
+								"value": "mulan",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "https://localhost:7014/api/Character/id?id=1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7014",
+							"path": [
+								"api",
+								"Character",
+								"id"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get By Age",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "name",
+								"value": "mulan",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "https://localhost:7014/api/Character/age?age=16",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7014",
+							"path": [
+								"api",
+								"Character",
+								"age"
+							],
+							"query": [
+								{
+									"key": "age",
+									"value": "16"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get By Name",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:7014/api/Character/name?name=goofy",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7014",
+							"path": [
+								"api",
+								"Character",
+								"name"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "goofy"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get By Weight",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:7014/api/Character/weight?weight=45",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7014",
+							"path": [
+								"api",
+								"Character",
+								"weight"
+							],
+							"query": [
+								{
+									"key": "weight",
+									"value": "45"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "name",
+								"value": "mulan",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"naruto\",\r\n  \"image\": \"string\",\r\n  \"age\": 18,\r\n  \"weight\": 50,\r\n  \"history\": \"el portado del zorro de 9 colas\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:7014/api/Character/Create",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7014",
+							"path": [
+								"api",
+								"Character",
+								"Create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "name",
+								"value": "mulan",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"characterID\": 7,\r\n    \"name\": \"naruto uzumaki\",\r\n    \"image\": \"string\",\r\n    \"age\": 18,\r\n    \"weight\": 50.00,\r\n    \"history\": \"el portado del zorro de 9 colas, Futuro Hokage\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:7014/api/Character/Update?id=7",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7014",
+							"path": [
+								"api",
+								"Character",
+								"Update"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "7"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "name",
+								"value": "mulan",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "https://localhost:7014/api/Character/Delete?id=7",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7014",
+							"path": [
+								"api",
+								"Character",
+								"Delete"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "7"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Movie",
+			"item": [
+				{
+					"name": "Get Movies",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:7014/api/Movie/movies",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7014",
+							"path": [
+								"api",
+								"Movie",
+								"movies"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Movies By Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:7014/api/Movie/id?id=1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7014",
+							"path": [
+								"api",
+								"Movie",
+								"id"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Movies By Name",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:7014/api/Movie/Tittle?title=mulan",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7014",
+							"path": [
+								"api",
+								"Movie",
+								"Tittle"
+							],
+							"query": [
+								{
+									"key": "title",
+									"value": "mulan"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Movies By Genero",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:7014/api/Movie/idGender?idGender=1",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7014",
+							"path": [
+								"api",
+								"Movie",
+								"idGender"
+							],
+							"query": [
+								{
+									"key": "idGender",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Movies By Order ASC",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:7014/api/Movie/OrderA?ASC=asc",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7014",
+							"path": [
+								"api",
+								"Movie",
+								"OrderA"
+							],
+							"query": [
+								{
+									"key": "ASC",
+									"value": "asc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Movies By Order DESC",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:7014/api/Movie/OrderD?DESC=desc",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7014",
+							"path": [
+								"api",
+								"Movie",
+								"OrderD"
+							],
+							"query": [
+								{
+									"key": "DESC",
+									"value": "desc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"title\": \"one piece\",\r\n  \"creationDate\": \"2022-10-11T00:37:07.038Z\",\r\n  \"calification\": 10,\r\n  \"image\": \"gomu gomu\",\r\n  \"genderID\": 2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:7014/api/Movie/Create",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7014",
+							"path": [
+								"api",
+								"Movie",
+								"Create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"movieID\": 4,\r\n  \"title\": \"one piece film Z\",\r\n  \"creationDate\": \"2022-10-11T00:37:07.038Z\",\r\n  \"calification\": 10,\r\n  \"image\": \"niko niko\",\r\n  \"genderID\": 2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://localhost:7014/api/Movie/Update?id=4",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7014",
+							"path": [
+								"api",
+								"Movie",
+								"Update"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "4"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "https://localhost:7014/api/Movie/Delete?id=4",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "7014",
+							"path": [
+								"api",
+								"Movie",
+								"Delete"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "4"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

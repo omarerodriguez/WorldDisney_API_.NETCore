@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MundoDeDisney.Core.Entities;
 using MundoDeDisney.Core.Interfaces;
@@ -8,6 +9,7 @@ namespace MundoDeDisney.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class MovieController : ControllerBase
     {
         private readonly IMovieRepository movieRepository;
@@ -60,6 +62,7 @@ namespace MundoDeDisney.Controllers
                     "Error retrieving data from the database");
             }
         }
+        [Authorize(Roles = "admin")]
         [Route("Create")]
         [HttpPost]
         public async Task<ActionResult<Movie>> CreateMovie(Movie movie)
@@ -70,6 +73,7 @@ namespace MundoDeDisney.Controllers
                 {
                     return BadRequest();
                 }
+                
                 var movieResult = await movieRepository.CreateMovie(movie);
                 return CreatedAtAction(nameof(CreateMovie), new { Id = movieResult.MovieID }, movieResult);
             }
@@ -79,6 +83,7 @@ namespace MundoDeDisney.Controllers
                     "Error creating new movie record");
             }
         }
+        [Authorize(Roles = "admin")]
         [Route("Update")]
         [HttpPut]
         public async Task<ActionResult<Movie>> UpdateMovie(int id, Movie movie)
@@ -102,6 +107,7 @@ namespace MundoDeDisney.Controllers
                     "Error Update movie record");
             }
         }
+        [Authorize(Roles = "admin")]
         [Route("Delete")]
         [HttpDelete]
         public async Task<ActionResult<Movie>> DeleteMovie(int id)
@@ -126,62 +132,96 @@ namespace MundoDeDisney.Controllers
         [HttpGet]
         public async Task<ActionResult<Movie>> OrderAsc(string ASC)
         {
-
-            var date = await movieRepository.GetMovieByDateOrderASC(ASC);
-            var list = date.Select(x => new { x.MovieID, x.Title, x.CreationDate, x.Calification, x.Image, x.GenderID });
-            return Ok(list);
+            try
+            {
+                var date = await movieRepository.GetMovieByDateOrderASC(ASC);
+                var list = date.Select(x => new { x.MovieID, x.Title, x.CreationDate, x.Calification, x.Image, x.GenderID });
+                return Ok(list);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Error retrieving data from the database");
+            }
+           
         }
         [Route("OrderD")]
         [HttpGet]
         public async Task<ActionResult<Movie>> OrderDesc(string DESC)
         {
-            var date = await movieRepository.GetMovieByDateOrderDESC(DESC);
-            var list = date.Select(x => new { x.MovieID, x.Title, x.CreationDate, x.Calification, x.Image, x.GenderID });
-            return Ok(list);
+            try
+            {
+                var date = await movieRepository.GetMovieByDateOrderDESC(DESC);
+                var list = date.Select(x => new { x.MovieID, x.Title, x.CreationDate, x.Calification, x.Image, x.GenderID });
+                return Ok(list);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Error retrieving data from the database");
+            }
         }
         [Route("idGender")]
         [HttpGet]
         public async Task<ActionResult<Movie>> GetMovieIdGender(int idGender)
         {
-            var character = await movieRepository.GetMovieByGender(idGender);
-            if (character == null)
+            try
             {
-                return NotFound();
-            }
-            var movie = await db.Movies.Select(m => new
-            {
-                Gender = m.Gender.GenderID,m.Gender.Name,
-                m.Gender.Image,
-                MovieId = m.MovieID,
-                Titulo = m.Title,
-                Date = m.CreationDate,
-                Calification = m.Calification,
-                Picture = m.Image,
-                CharacterMovie = m.CharactersMovies.Select(cm => new
-                { cm.CharacterID, cm.Character.Name, cm.Character.Image, cm.Character.Age, cm.Character.Weight, cm.Character.History })
+                var character = await movieRepository.GetMovieByGender(idGender);
+                if (character == null)
+                {
+                    return NotFound();
+                }
+                var movie = await db.Movies.Select(m => new
+                {
+                    Gender = m.Gender.GenderID,
+                    m.Gender.Name,
+                    m.Gender.Image,
+                    MovieId = m.MovieID,
+                    Titulo = m.Title,
+                    Date = m.CreationDate,
+                    Calification = m.Calification,
+                    Picture = m.Image,
+                    CharacterMovie = m.CharactersMovies.Select(cm => new
+                    { cm.CharacterID, cm.Character.Name, cm.Character.Image, cm.Character.Age, cm.Character.Weight, cm.Character.History })
 
-            }).FirstOrDefaultAsync(g => g.MovieId == idGender);
-            return Ok(movie);
+                }).FirstOrDefaultAsync(g => g.MovieId == idGender);
+                return Ok(movie);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Error retrieving data from the database");
+            }
         }
         [Route("Tittle")]
         [HttpGet]
         public async Task<ActionResult<Movie>> GetMovieTitle(string title)
         {
-            
-            var movie = await db.Movies.Select(m => new
+            try
             {
-                Tittle = m.Title,
-                Picture = m.Image,
-                MovieId = m.MovieID,
-                CreationDate = m.CreationDate,
-                Calification = m.Calification,
-                Gender = m.Gender.GenderID,m.Gender.Name, m.Gender.Image,
-                CharacterMovie = m.CharactersMovies.Select(cm => new
-                { cm.CharacterID, cm.Character.Name, cm.Character.Image, cm.Character.Age, cm.Character.Weight, cm.Character.History })
-                
-            }).FirstOrDefaultAsync(t=>t.Tittle==title);
-           
-            return Ok(movie);
+                var movie = await db.Movies.Select(m => new
+                {
+                    Tittle = m.Title,
+                    Picture = m.Image,
+                    MovieId = m.MovieID,
+                    CreationDate = m.CreationDate,
+                    Calification = m.Calification,
+                    Gender = m.Gender.GenderID,
+                    m.Gender.Name,
+                    m.Gender.Image,
+                    CharacterMovie = m.CharactersMovies.Select(cm => new
+                    { cm.CharacterID, cm.Character.Name, cm.Character.Image, cm.Character.Age, cm.Character.Weight, cm.Character.History })
+
+                }).FirstOrDefaultAsync(t => t.Tittle == title);
+
+                return Ok(movie);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Error retrieving data from the database");
+            }
         }
     }
 }
