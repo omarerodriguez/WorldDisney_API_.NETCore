@@ -1,9 +1,14 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MundoDeDisney.Core.Entities;
-using MundoDeDisney.Core.Interfaces;
-using MundoDeDisney.Infraestructure.Data;
+using MundoDeDisney.MundoDeDisney.Core.DTOs;
+using MundoDeDisney.MundoDeDisney.Core.Entities;
+using MundoDeDisney.MundoDeDisney.Core.Exceptions;
+using MundoDeDisney.MundoDeDisney.Core.Interfaces;
+using MundoDeDisney.MundoDeDisney.Core.QueryFilters;
+using MundoDeDisney.MundoDeDisney.Infrastructure.Data;
 
 namespace MundoDeDisney.Controllers
 {
@@ -12,216 +17,81 @@ namespace MundoDeDisney.Controllers
     [Authorize]
     public class MovieController : ControllerBase
     {
-        private readonly IMovieRepository movieRepository;
-        private readonly DisneyDbContext db;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMovieService _movieService;
+        private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
 
-        public MovieController(IMovieRepository movieRepository, DisneyDbContext db)
+        public MovieController(IUnitOfWork unitOfWork, ApplicationDbContext context,
+            IMapper mapper, IMovieService movieService)
         {
-            this.movieRepository = movieRepository;
-            this.db = db;
+            _unitOfWork = unitOfWork;
+            _context = context;
+            _mapper = mapper;
+            _movieService = movieService;
         }
-        [Route("movies")]
         [HttpGet]
-        public async Task<ActionResult<Movie>> GetAllMovie()
+        public async Task<ActionResult<MovieDTO>> GetAll([FromQuery]MovieQueryfilter filters) 
         {
-            var movie = await movieRepository.GetAllMovies();
-            var list = movie.Select(x=> new {x.Title,x.CreationDate,x.Image}).ToList();
-            return Ok(list);
+            var movies =  _movieService.GetMovies(filters);
+            var movieDTO = _mapper.Map<IEnumerable<MovieDTO>>(movies);
+            return Ok(movieDTO);
         }
-        [Route("id")]
-        [HttpGet]
-        public async Task<ActionResult<Movie>> GetMovie(int id)
+        [HttpGet("{id}")]
+        public async Task<ActionResult<MovieShowDetailsDTO>> GetMovie(int id)
         {
-            try
-            {
-                var movieId = await movieRepository.GetMovieById(id);
-                if (movieId == null)
-                {
-                    return NotFound();
-                }
-                var movie = await db.Movies.Select(m => new
-                {
-                    MovieId = m.MovieID,
-                    Titulo = m.Title,
-                    Date = m.CreationDate,
-                    Calification = m.Calification,
-                    Picture = m.Image,
-                    Gender = m.Gender.GenderID,
-                    m.Gender.Name,
-                    m.Gender.Image,
-                    CharacterMovie = m.CharactersMovies.Select(cm => new 
-                    { cm.CharacterID, cm.Character.Name,cm.Character.Image,cm.Character.Age,cm.Character.Weight,cm.Character.History })
-
-                }).FirstOrDefaultAsync(g => g.MovieId == id);
-               
-                return Ok(movie);
-            }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Error retrieving data from the database");
-            }
+            var movie = await _context.Movies.Select(m =>
+             new
+             {
+                 Id=m.Id,
+                 Title = m.Title,
+                 Genres = m.Genres.OrderByDescending(n=>n.Name).Select(g=>g.Name).ToList(),
+                 Characters = m.MoviesCharacters.Select(mc => new
+                 {
+                     CharacterId = mc.CharacterId,
+                     Name = mc.Character.Name
+                 }),
+             }).FirstOrDefaultAsync(mc=>mc.Id == id) ??  throw new BusinessExceptions($"Character Id:{id} not found");
+            return Ok(movie);
         }
-        [Authorize(Roles = "admin")]
-        [Route("Create")]
         [HttpPost]
-        public async Task<ActionResult<Movie>> CreateMovie(Movie movie)
+        public async Task<ActionResult> Add(MovieCreationDTO movieCreationDTO)
         {
-            try
+            var movie = _mapper.Map<Movie>(movieCreationDTO);
+            if (movie.Genres is not null)
+            { foreach (var genre in movie.Genres)
+                { _context.Entry(genre).State = EntityState.Unchanged;}
+            }
+            if(movie.MoviesCharacters is not null)
             {
-                if (movie == null)
+                for (int i = 0; i < movie.MoviesCharacters.Count; i++)
                 {
-                    return BadRequest();
+                    movie.MoviesCharacters[i].Order = i+1;
                 }
-                
-                var movieResult = await movieRepository.CreateMovie(movie);
-                return CreatedAtAction(nameof(CreateMovie), new { Id = movieResult.MovieID }, movieResult);
             }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Error creating new movie record");
-            }
+            await _unitOfWork.MovieRepository.Add(movie);
+            await _unitOfWork.SaveChangesAsync();
+            return Ok();
         }
-        [Authorize(Roles = "admin")]
-        [Route("Update")]
-        [HttpPut]
-        public async Task<ActionResult<Movie>> UpdateMovie(int id, Movie movie)
+        [HttpPut("{id}")]
+        public async Task<ActionResult> Put(int id,[FromForm] MovieCreationDTO moviePutDTO)
         {
-            try
-            {
-                if (id != movie.MovieID)
-                {
-                    return BadRequest("movie Id mismatch");
-                }
-                var movieResult = await movieRepository.UpdateMovie(movie);
-                if (movieResult == null)
-                {
-                    return NotFound($"Movie with Id = {id} not found");
-                }
-                return await movieRepository.UpdateMovie(movie);
-            }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Error Update movie record");
-            }
-        }
-        [Authorize(Roles = "admin")]
-        [Route("Delete")]
-        [HttpDelete]
-        public async Task<ActionResult<Movie>> DeleteMovie(int id)
-        {
-            try
-            {
-                var movieDelete = await movieRepository.GetMovieById(id);
-                if (movieDelete == null)
-                {
-                    return NotFound($"Movie with Id = {id} not found");
-                }
-                await movieRepository.DeleteMovie(id);
-                return Ok($"Movie with Id = {id} deleted");
-            }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Error delete movie record");
-            }
-        }
-        [Route("OrderA")]
-        [HttpGet]
-        public async Task<ActionResult<Movie>> OrderAsc(string ASC)
-        {
-            try
-            {
-                var date = await movieRepository.GetMovieByDateOrderASC(ASC);
-                var list = date.Select(x => new { x.MovieID, x.Title, x.CreationDate, x.Calification, x.Image, x.GenderID });
-                return Ok(list);
-            }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Error retrieving data from the database");
-            }
+            var movieExist = await _unitOfWork.MovieRepository.GetById(id) ?? throw new BusinessExceptions($"Character Id:{id} not found");
+            var movie = _mapper.Map<Movie>(moviePutDTO);
+            movie.Id= id;
+            await _unitOfWork.MovieRepository.Update(movie);
+            await _unitOfWork.SaveChangesAsync();
+            return Ok();
            
         }
-        [Route("OrderD")]
-        [HttpGet]
-        public async Task<ActionResult<Movie>> OrderDesc(string DESC)
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> Delete(int id)
         {
-            try
-            {
-                var date = await movieRepository.GetMovieByDateOrderDESC(DESC);
-                var list = date.Select(x => new { x.MovieID, x.Title, x.CreationDate, x.Calification, x.Image, x.GenderID });
-                return Ok(list);
-            }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Error retrieving data from the database");
-            }
-        }
-        [Route("idGender")]
-        [HttpGet]
-        public async Task<ActionResult<Movie>> GetMovieIdGender(int idGender)
-        {
-            try
-            {
-                var character = await movieRepository.GetMovieByGender(idGender);
-                if (character == null)
-                {
-                    return NotFound();
-                }
-                var movie = await db.Movies.Select(m => new
-                {
-                    Gender = m.Gender.GenderID,
-                    m.Gender.Name,
-                    m.Gender.Image,
-                    MovieId = m.MovieID,
-                    Titulo = m.Title,
-                    Date = m.CreationDate,
-                    Calification = m.Calification,
-                    Picture = m.Image,
-                    CharacterMovie = m.CharactersMovies.Select(cm => new
-                    { cm.CharacterID, cm.Character.Name, cm.Character.Image, cm.Character.Age, cm.Character.Weight, cm.Character.History })
+            var result = await _unitOfWork.MovieRepository.GetById(id) ?? throw new BusinessExceptions($"Character Id:{id} not found");
+            await _unitOfWork.MovieRepository.Delete(id);
+            await _unitOfWork.SaveChangesAsync();
+            return Ok();
 
-                }).FirstOrDefaultAsync(g => g.MovieId == idGender);
-                return Ok(movie);
-            }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Error retrieving data from the database");
-            }
-        }
-        [Route("Tittle")]
-        [HttpGet]
-        public async Task<ActionResult<Movie>> GetMovieTitle(string title)
-        {
-            try
-            {
-                var movie = await db.Movies.Select(m => new
-                {
-                    Tittle = m.Title,
-                    Picture = m.Image,
-                    MovieId = m.MovieID,
-                    CreationDate = m.CreationDate,
-                    Calification = m.Calification,
-                    Gender = m.Gender.GenderID,
-                    m.Gender.Name,
-                    m.Gender.Image,
-                    CharacterMovie = m.CharactersMovies.Select(cm => new
-                    { cm.CharacterID, cm.Character.Name, cm.Character.Image, cm.Character.Age, cm.Character.Weight, cm.Character.History })
-
-                }).FirstOrDefaultAsync(t => t.Tittle == title);
-
-                return Ok(movie);
-            }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Error retrieving data from the database");
-            }
         }
     }
 }
